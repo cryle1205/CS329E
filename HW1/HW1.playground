@@ -1,0 +1,284 @@
+//Project: LeCrystal-HW1
+//EID: CL44964
+//Course: CS329E
+
+//Weapons class that includes a damage points method and intializers
+class Weapon{
+    
+    //weapon instance
+    var weapon:String
+    //initate weapons
+    init(weaponType:String){
+        weapon = weaponType
+    }
+    
+    //method to return the damage points per weapon type
+    func damageAmt() -> Int{
+        if weapon == "dagger"{
+            return 4
+        }
+        else if weapon == "axe"{
+            return 6
+        }
+        else if weapon == "staff"{
+            return 6
+        }
+        else if weapon == "sword"{
+            return 10
+        }
+        else if weapon == "none"{
+            return 1
+        }
+        return -1
+    }
+}
+
+//Armor class that includes armor class level method and intializers
+class Armor{
+    
+    //armor instance
+    var armor:String
+    //initate armor
+    init(armorType:String){
+        armor = armorType
+    }
+    
+    //method to return the armor class level of the armor type
+    func armorAC() -> Int {
+        if (armor == "plate") {
+            return 2
+        }
+        else if (armor == "chain") {
+            return 5
+        }
+        else if (armor == "leather") {
+           return 8
+        }
+        else if (armor == "none") {
+            return 10
+        }
+        return -1
+    }
+}
+
+//Role-Playing Game class that will serve as the parent class for characters
+class RPGCharacter{
+    
+    //variable instance for characters
+    var characterName:String
+    var currentWeapon:Weapon = Weapon(weaponType: "none")
+    var currentArmor:Armor = Armor(armorType: "none")
+    var currentHealth:Int = 0
+    var spellPts:Int = 0
+    var acLevel:Int = 10
+    //class initializer, and set health to max that a character can have and armor to none
+    init(name:String, weapon:Weapon = Weapon(weaponType: "none"), armor:Armor = Armor(armorType: "none"), health:Int, spell:Int = 0, ac:Int = 10){
+        characterName = name
+        currentWeapon = weapon
+        currentArmor = armor
+        currentHealth = health
+        spellPts = spell
+        acLevel = ac
+    }
+    
+    //method to show current stats of the character
+    func show(){
+        print(characterName)
+        print("   Current Health:  \(currentHealth)")
+        print("   Current Spell Points:  \(spellPts)")
+        print("   Wielding:  \(currentWeapon.weapon)")
+        print("   Wearing:  \(currentArmor.armor)")
+        print("   Armor class:  \(currentArmor.armorAC())")
+    }
+    
+    //remove the current weapon the character was holding
+    func unwield(){
+        currentWeapon = Weapon(weaponType: "none")
+        print("\(characterName) is no longer wielding anything.")
+    }
+    
+    //remove  off the current armor used
+    func takeOffArmor(){
+        currentArmor = Armor(armorType: "none")
+        print("\(characterName) is no longer wearing anything.")
+    }
+    
+    //method to adjust the healths score before showing
+    func adjustHealthScore(player:RPGCharacter, damage:Int) -> Int {
+        player.currentHealth = (player.currentHealth - damage)
+        return currentHealth
+    }
+    
+    //check to see if the character has died
+    func checkForDefeat(player:RPGCharacter) {
+        if (player.currentHealth <= 0) {
+            print("\(player.characterName) has been defeated!")
+        }
+    }
+    
+    //fight method when player attacks opponent
+    func fight(opponent:RPGCharacter) {
+        print("\(characterName) attacks \(opponent.characterName) with a(n) \(currentWeapon.weapon)")
+        print("\(characterName) does \(currentWeapon.damageAmt()) damage to \(opponent.characterName)")
+        adjustHealthScore(player:opponent, damage:currentWeapon.damageAmt())
+        print("\(opponent.characterName) is now down to \(opponent.currentHealth) health")
+        checkForDefeat(player:opponent)
+    }
+}
+
+//subclass Fighter that inherits from RPG parent class
+class Fighter:RPGCharacter{
+    
+    //initialize Fighter with 40 max health and no spell points
+    init(name:String, health:Int = 0, spell:Int = 0){
+        super.init(name:name, health:40, spell:0)
+    }
+    
+    //Fighters can wear any type of armor and this function sets the armor
+    func putOnArmor(armorObject:Armor){
+        currentArmor.armor = armorObject.armor
+        print("\(characterName) is now wearing a(n) \(armorObject.armor)")
+    }
+    //Fighters can use any type of weapon and this function sets the weapon
+    func wield(weaponObject: Weapon) {
+        currentWeapon.weapon = weaponObject.weapon
+        print("\(characterName) is now wielding a(n) \(weaponObject.weapon)" )
+    }
+}
+
+class Wizard:RPGCharacter{
+    
+    //initalize Wizard with 16 max health and 20 spell points
+    init(name:String, health:Int = 0, spellPts:Int = 0){
+        super.init(name:name, health:16, spell:20)
+    }
+    
+    //wielding method and restricts wizard to dagger, staff, or none
+    func wield(weaponObject:Weapon){
+        if(weaponObject.weapon == "dagger") || (weaponObject.weapon == "staff") ||
+            weaponObject.weapon == "none"{
+            currentWeapon.weapon = weaponObject.weapon
+            print("\(characterName) is now wielding a(n) \(weaponObject.weapon)")
+        }
+        else{
+        print("Weapon not allowed for this character class")
+        }
+    }
+    
+    //wizards cannot wear armor
+    func putOnArmor(armorType: Armor) {
+            print("Armor not allowed for this character class")
+    }
+    
+    //castSpell function for wizards using fireball, lightning bolt, heal
+    func castSpell(spellName:String, target:RPGCharacter){
+        let fireball = (spellType:"Fireball", cost:3, effect:5)
+        let lightningBolt = (spellType:"Lightning Bolt", cost:10, effect:10)
+        let heal = (spellType:"Heal", cost:6, effect:-6)
+        //variables to subtract from
+        var minCost = 0
+        var effectAmt = 0
+        //fireball spell action
+        if (spellName == fireball.spellType){
+            minCost = fireball.cost
+            effectAmt = fireball.effect
+            //check if there are sufficent spell points to spend
+            if (spellPts < minCost){
+                print("Insufficient spell points.")
+            }
+            else{
+                //decrease remaining spell pts
+                spellPts = spellPts - minCost
+                //change health score
+                target.currentHealth = target.currentHealth - effectAmt
+                print("\(characterName) casts \(spellName) at \(target.characterName)")
+                print("\(characterName) does \(effectAmt) damage to \(target.characterName)")
+                print("\(target.characterName) is now down to \(target.currentHealth) health")
+            }
+        }
+        //lightning spell action
+        else if (spellName == lightningBolt.spellType){
+            minCost = lightningBolt.cost
+            effectAmt = lightningBolt.effect
+            //check if there are sufficent spell points to spend
+            if (spellPts < minCost){
+                print("Insufficient spell points.")
+            }
+            else{
+                //decrease remaining spell pts
+                spellPts = spellPts - minCost
+                //change health score
+                target.currentHealth = target.currentHealth - effectAmt
+                print("\(characterName) casts \(spellName) at \(target.characterName)")
+                print("\(characterName) does \(effectAmt) damage to \(target.characterName)")
+                print("\(target.characterName) is now down to \(target.currentHealth) health")
+            }
+        }
+        //heal spell action
+        else if (spellName == heal.spellType){
+            minCost = heal.cost
+            effectAmt = heal.effect
+            //check if there are sufficent spell points to spend
+            if (spellPts < minCost){
+                print("Insufficient spell points.")
+            }
+            else{
+                if (effectAmt + target.currentHealth >= 16) {
+                    target.currentHealth = 16
+                }
+                else{
+                    //decrease remaining spell pts
+                    spellPts = spellPts - minCost
+                    //change health score
+                    target.currentHealth = currentHealth - effectAmt
+                }
+                print("\(characterName) casts \(spellName) at \(target.characterName)")
+                print("\(characterName) heals \(target.characterName) for \(-1 * effectAmt) health points")
+                print("\(target.characterName) is now down to \( target.currentHealth) health")
+            }
+        }
+        //all other spells, won't be recognized and return an error message
+        else{
+            print("Unknown spell name. Spell failed.")
+        }
+    }
+}
+
+// top level code
+let plateMail = Armor(armorType: "plate")
+let chainMail = Armor(armorType: "chain")
+let sword = Weapon(weaponType: "sword")
+let staff = Weapon(weaponType: "staff")
+let axe = Weapon(weaponType: "axe")
+
+let gandalf = Wizard(name: "Gandalf the Grey")
+gandalf.wield(weaponObject: staff)
+
+let aragorn = Fighter(name: "Aragorn")
+aragorn.putOnArmor(armorObject: plateMail)
+aragorn.wield(weaponObject: axe)
+
+gandalf.show()
+aragorn.show()
+
+gandalf.castSpell(spellName: "Fireball", target: aragorn)
+aragorn.fight(opponent: gandalf)
+
+gandalf.show()
+aragorn.show()
+
+gandalf.castSpell(spellName: "Lightning Bolt", target: aragorn)
+aragorn.wield(weaponObject: sword)
+
+gandalf.show()
+aragorn.show()
+
+gandalf.castSpell(spellName: "Heal", target: gandalf)
+aragorn.fight(opponent: gandalf)
+
+gandalf.fight(opponent: aragorn)
+aragorn.fight(opponent: gandalf)
+
+gandalf.show()
+aragorn.show()
+
